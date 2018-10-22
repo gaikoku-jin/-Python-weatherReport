@@ -1,10 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import bs4, re, requests
+import bs4, re, requests,sys
 
 from pollution import pollutionReport
-from contacts import addressBook
+#from contacts import addressBook
+from contacTest import addressBook
 from mailer import sendMail
+
+if sys.version[0] == '2':
+    reload(sys)
+    sys.setdefaultencoding("utf-8")
 
 
 def windDiscDirection (windDirStr):
@@ -28,14 +33,16 @@ def windDiscDirection (windDirStr):
 
 
 def description (name, tempFeel, press, cloud, rain, snow, windSpeed, windDir):
-    windDisc = windDiscDirection(windDir)
+	windDisc = windDiscDirection(windDir)
     
-    desc = "Dzień dobry, "+name+"! \n\nDzisiejsza temperatura odczuwalna w Krakowie wyniesie "+tempFeel+ \
-    ", zaś ciśnienie "+press+". Niebo będzie zachmurzone w "+cloud+", a spadnie z niego w ciągu doby "+ \
-    rain+" deszczu oraz "+snow+" śniegu. Wiatr w kierunku "+windDisc+" będzie wiał z prędkością "+windSpeed+ \
-    ". \n\n"+pollutionReport()+" \n\nMiłego dnia! :) \n _ _\nby MZ\ndane: Onet/GIOŚ"
-    return desc
-  
+	desc = "Dzień dobry, "+name+"! \n\nDzisiejsza temperatura odczuwalna w Krakowie wyniesie "+tempFeel+ \
+	", zaś ciśnienie "+press+". Niebo będzie zachmurzone w "+cloud+", a spadnie z niego w ciągu doby "+ \
+	rain+" deszczu oraz "+snow+" śniegu. Wiatr w kierunku "+windDisc+" będzie wiał z prędkością "+windSpeed+ \
+	". \n\n"+pollutionReport()+" \n\nMiłego dnia! :) \n --\nby MZ\ndane: Onet/GIOŚ"
+
+	return desc
+
+ 
 
 res = requests.get('https://pogoda.onet.pl/prognoza-pogody/dlugoterminowa/krakow-306020')
 res.raise_for_status()
@@ -45,6 +52,7 @@ li = soup.select('#wtl_p0 li')
 
 
 degRegEx = re.compile('(\d\d|\d\d\d)deg')
+speedRegEx = re.compile('(\d|\d\d|\d\d\d) km')
 
 
 for i in range(len(li)):
@@ -55,7 +63,7 @@ for i in range(len(li)):
     elif li[i].select('span[class="restParamLabel"]')[0].getText()=="Zachm.":
         cloud = li[i].select('span[class="restParamValue"]')[0].getText()
     elif li[i].select('span[class="restParamLabel"]')[0].getText()=="Wiatr":
-        windSpeed = li[i].select('span[class="restParamValue"]')[0].getText()[0:7]
+        windSpeed = li[i].select('span[class="restParamValue"]')[0].getText()[0:6]
         windDirRaw = li[i].select('span[class="windDirectionArrow"]')
         windDir = degRegEx.search(str(windDirRaw)).group(1)
     elif li[i].select('span[class="restParamLabel"]')[0].getText()[1:]=="nieg":
