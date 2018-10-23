@@ -1,4 +1,4 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-addressBook = {"Zakrzew":"marcin.zakrzewski@koliber.org"}
+addressBook = {"Zakrzew":"zakrzews@agh.edu.pl"}

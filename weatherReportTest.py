@@ -3,8 +3,8 @@
 import bs4, re, requests,sys
 
 from pollution import pollutionReport
-from contacts import addressBook
-#from contacTest import addressBook
+#from contacts import addressBook
+from contacTest import addressBook
 from mailer import sendMail
 
 if sys.version[0] == '2':
