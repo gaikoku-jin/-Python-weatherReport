@@ -10,6 +10,8 @@ from mailer import sendMail
 if sys.version[0] == '2':
     reload(sys)
     sys.setdefaultencoding("utf-8")
+	
+parameter = bytes(sys.argv[1].encode())
 
 def windDiscDirection (windDirStr):
     windDir = int(windDirStr)
@@ -164,4 +166,4 @@ for name in addressBook:
        pollutionReport() +"\n\n"+\
        bye()
     recipient = addressBook[name]
-    sendMail(desc.encode('utf-8'), recipient)
+    sendMail(desc.encode('utf-8'), recipient, parameter)

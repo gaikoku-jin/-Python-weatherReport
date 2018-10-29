@@ -3,6 +3,7 @@
 import datetime
 import smtplib
 import urllib3
+from decrypter import decrypt
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -10,7 +11,7 @@ from email.header import Header
 from email.utils import formataddr
 
 
-def sendMail(messageBody, recipient):
+def sendMail(messageBody, recipient, parameter):
     author = formataddr((str(Header(u'Marcin', 'utf-8')), "zakrzews@agh.edu.pl"))
     toaddr = recipient
     msg = MIMEMultipart()
@@ -23,7 +24,7 @@ def sendMail(messageBody, recipient):
     msg.attach(MIMEText(body, 'plain', 'utf-8'))
     smtpObj = smtplib.SMTP_SSL('poczta.agh.edu.pl', 465)
     smtpObj.ehlo()
-    smtpObj.login('zakrzews@agh.edu.pl', 'Zino-val')
+    smtpObj.login('zakrzews@agh.edu.pl', decrypt(parameter))
     text = msg.as_string()
     smtpObj.sendmail(author, toaddr, text)
     smtpObj.quit()
