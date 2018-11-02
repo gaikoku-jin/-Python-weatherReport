@@ -19,7 +19,7 @@ def sendMail(messageBody, recipient, parameter):
     date = datetime.datetime.now().strftime("%d-%m-%Y")
     msg['From'] = author
     msg['To'] = toaddr
-    msg['Subject'] = "Podwawelski raport pogodowy "+date
+    msg['Subject'] = "Raport pogodowy "+date
     body = messageBody
     msg.attach(MIMEText(body, 'plain', 'utf-8'))
     smtpObj = smtplib.SMTP_SSL('poczta.agh.edu.pl', 465)
