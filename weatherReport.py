@@ -1,19 +1,23 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import bs4, re, requests,sys
+from datetime import datetime
+from pprint import pprint as pp
+from statistics import mean
 
 from pollution import pollutionReport
 from contacts import addressBook
-from contacts import linkBook
-from contacts import locativeBook
-from mailer import sendMail
+from contacts import linkTuple
+# from contacts import locativeBook
+# from mailer import sendMail
 
 if sys.version[0] == '2':
     reload(sys)
     sys.setdefaultencoding("utf-8")
 
 if len(sys.argv) >1:
-    parameter = bytes(sys.argv[1].encode())
+    #parameter = bytes(sys.argv[1].encode())
+    apiCode = str(sys.argv[1]) # chwilowo 1, potem 2 jak wejdzie klucz
 
 def windDiscDirection (windDirStr):
     windDir = int(windDirStr)
@@ -65,10 +69,10 @@ def current (generic, tempFeelNow, pressNow, cloudNow, rainNow, snowNow, windSpe
     desc = "Aktualnie w "+locative+" jest "+generic+", a temperatura odczuwalna to "+tempFeelNow+". "+windStrength+"\n\n"
     return desc
 
-def forecasted (tempFeel, press, cloud, rain, snow, windSpeed, windDir):
+def forecasted (tempMax, tempMin, press, cloud, rain, snow, windSpeed, windDir):
     windDisc = windDiscDirection(windDir)
 
-    desc = "W ciągu dnia temperatura odczuwalna wyniesie "+tempFeel+", zaś ciśnienie "+press+ \
+    desc = "W ciągu dnia temperatura maksymalna wyniesie "+tempMax+", a minimalna "+tempMin+", zaś ciśnienie "+press+ \
     ". Niebo będzie zachmurzone w "+cloud+", a spadnie z niego w ciągu doby "+str(rain)+ \
     " mm deszczu oraz "+str(snow)+" mm śniegu. Wiatr w kierunku "+windDisc+" będzie wiał z prędkością "+str(windSpeed)+" km\h. \n"
 
@@ -81,71 +85,64 @@ def sunTime (sunrise, sunset):
 
 
 def bye():
-    return "Miłego dnia! :) \n\n--\nby MZ\ndane: Onet/GIOŚ"
+    return "Miłego dnia! :) \n\n--\nby MZ\ndane: OpenWeatherMap/GIOŚ"
  
 
 for city in addressBook:
-    res = requests.get(linkBook[city])
+    currentJson,forecastJson = linkTuple(city, apiCode)
+    res = requests.get(currentJson)
     res.raise_for_status()
-    soup = bs4.BeautifulSoup(res.text, "lxml")
+    now = res.json()
 
-    generic = soup.select('#wts_p0 div[class="forecastDesc"]')[0].getText().replace('\n','').replace('\t','').replace('\r','').lower()
-    now = soup.select('#wts_p0 li')
-    forecast = soup.select('#wtl_p0 li')
-    sun = soup.select('#wtl_p0 div span[class="text"] strong')
+    generic = now["weather"][0]["description"]
+    loc = addressBook[city]["locative"]
 
-    loc = locativeBook[city]
+    tempFeelNow = str(float('%.1f'%((now["main"]["temp"])-273.15)))+"℃"
+    rainNow = 0
+    cloudNow = now["clouds"]["all"]
 
-    degRegEx = re.compile('(\d|\d\d|\d\d\d)deg')
-    speedRegEx = re.compile('(\d|\d\d|\d\d\d) km')
-    precipRegEx = re.compile('((\d|\d\d),(\d)) mm')
+    windSpeedNow = float('%.1f'%now["wind"]["speed"])
+    windDirNow = float(now["wind"]["deg"])
 
+    snowNow = 0
 
-    tempFeelNow = now[0].select('span[class="restParamValue"]')[0].getText()
-    rainRawNow = now[1].select('span[class="restParamValue"]')[0].getText()
-    rainNow = float(precipRegEx.search(rainRawNow).group(1).replace(',','.'))
-    cloudNow = now[2].select('span[class="restParamValue"]')[0].getText()
+    pressNow = now["main"]["pressure"]
 
-    windSpeedRawNow = now[3].select('span[class="restParamValue"]')[0].getText()[0:7]
-    windSpeedNow = float(speedRegEx.search(str(windSpeedRawNow)).group(1))
-    windDirRawNow = now[3].select('span[class="windDirectionArrow"]')
-    windDirNow = degRegEx.search(str(windDirRawNow)).group(1)
+    sunriseTimeStamp = float(now["sys"]["sunrise"])
+    sunrise = datetime.fromtimestamp(sunriseTimeStamp).strftime("%H:%M")
 
-    snowRawNow = now[4].select('span[class="restParamValue"]')[0].getText()
-    snowNow = float(precipRegEx.search(snowRawNow).group(1).replace(',','.'))
+    sunsetTimeStamp = float(now["sys"]["sunset"])
+    sunset = datetime.fromtimestamp(sunsetTimeStamp).strftime("%H:%M")
 
-    pressNow = now[5].select('span[class="restParamValue"]')[0].getText()
+    res2 = requests.get(forecastJson)
+    res2.raise_for_status()
+    forecast = res2.json()
 
+    tempMax = max([forecast["list"][i]["main"]["temp_max"] for i in range(0,4)])
+    tempMin = min([forecast["list"][i]["main"]["temp_min"] for i in range(0,4)])
+    press = mean([forecast["list"][i]["main"]["pressure"] for i in range(0,4)])
+    cloud = mean([forecast["list"][i]["clouds"]["all"] for i in range(0,8)])
+    # rain = sum([forecast["list"][i]["rain"]["3h"] for i in range(0,8)])
+    rain = 0
+    # snow = mean([forecast["list"][i]["snow"]["3h"] for i in range(0,8)])
+    snow = 0
+    windSpeed = max([forecast["list"][i]["wind"]["speed"] for i in range(0,8)])
+    windDir = mean([forecast["list"][i]["wind"]["deg"] for i in range(0,4)])
 
-    for i in range(len(forecast)):
-        if forecast[i].select('span[class="restParamLabel"]')[0].getText()=="T. odczuw.":
-            tempFeel = forecast[i].select('span[class="restParamValue"]')[0].getText()
-        elif forecast[i].select('span[class="restParamLabel"]')[0].getText()=="Deszcz":
-            rainRaw = forecast[i].select('span[class="restParamValue"]')[0].getText()
-            rain = float(precipRegEx.search(rainRaw).group(1).replace(',','.'))
-        elif forecast[i].select('span[class="restParamLabel"]')[0].getText()=="Zachm.":
-            cloud = forecast[i].select('span[class="restParamValue"]')[0].getText()
-        elif forecast[i].select('span[class="restParamLabel"]')[0].getText()=="Wiatr":
-            windSpeedRaw = forecast[i].select('span[class="restParamValue"]')[0].getText()[0:7]
-            windSpeed = float(speedRegEx.search(str(windSpeedRaw)).group(1))
-            windDirRaw = forecast[i].select('span[class="windDirectionArrow"]')
-            windDir = degRegEx.search(str(windDirRaw)).group(1)
-        elif forecast[i].select('span[class="restParamLabel"]')[0].getText()[1:]=="nieg":
-            snowRaw = forecast[i].select('span[class="restParamValue"]')[0].getText()
-            snow = float(precipRegEx.search(snowRaw).group(1).replace(',','.'))
-        elif forecast[i].select('span[class="restParamLabel"]')[0].getText()[3:]=="nienie":
-            press = forecast[i].select('span[class="restParamValue"]')[0].getText()
+    currentWeather=current(generic, tempFeelNow, pressNow, cloudNow, rainNow, snowNow, windSpeedNow, windDirNow, loc)
+    forecastWeather = forecasted(tempMax,tempMin,press,cloud,rain,snow,windSpeed,windDir)
+    sun=sunTime(sunrise, sunset)
+    pollution=pollutionReport(city)
 
-    sunrise = sun[0].getText()
-    sunset = sun[1].getText()
-
-
-    for name in addressBook[city]:
-        desc = hello(name) +"\n\n"+\
-           current(generic, tempFeelNow, pressNow, cloudNow, rainNow, snowNow, windSpeedNow, windDirNow, loc) +\
-           forecasted(tempFeel, press, cloud, rain, snow, windSpeed, windDir) +\
-           sunTime(sunrise, sunset) +\
-           pollutionReport(city) +\
-           bye()
-        recipient = addressBook[city][name]
-        sendMail(desc.encode('utf-8'), recipient, parameter)
+    for name in addressBook[city]["names"]:
+        desc = hello(name) + "\n\n" + \
+            currentWeather + \
+            forecast +\
+            sun +\
+            pollution +\
+            "\n\n" +bye()
+        recipient = addressBook[city]["names"][name]
+        pp(desc)
+        pp(recipient)
+        pp("")
+    #sendMail(desc.encode('utf-8'), recipient, parameter)
