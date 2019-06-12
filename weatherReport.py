@@ -38,6 +38,17 @@ def windDiscDirection(windDirStr):
     elif windDir >= 293 and windDir <= 337:
         return 'północno-zachodnim'
 
+def precipitation (precipType):
+    recordList=[]
+
+    for record in (forecast["list"][i] for i in range(0, 8)):
+        if precipType in record:
+            recordList.append(record[precipType]["3h"])
+
+    if recordList:
+        return float("%.1f" % (sum(recordList)/len(recordList)))
+    else:
+        return 0.0
 
 def hello(name):
     return "Dzień dobry, "+name+"!\n\n"
@@ -124,10 +135,8 @@ for city in addressBook:
     tempMin = float('%.1f' % (min([forecast["list"][i]["main"]["temp_min"] for i in range(0, 4)])-273.15))
     press = int(mean([forecast["list"][i]["main"]["pressure"] for i in range(0, 4)]))
     cloud = int(mean([forecast["list"][i]["clouds"]["all"] for i in range(0, 8)]))
-    # rain = sum([forecast["list"][i]["rain"]["3h"] for i in range(0,8)])
-    rain = 0
-    # snow = mean([forecast["list"][i]["snow"]["3h"] for i in range(0,8)])
-    snow = 0
+    rain = precipitation("rain")
+    snow = precipitation("snow")
     windSpeed = max([forecast["list"][i]["wind"]["speed"] for i in range(0, 8)])
     windDir = mean([forecast["list"][i]["wind"]["deg"] for i in range(0, 4)])
 
