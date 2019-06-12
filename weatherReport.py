@@ -12,14 +12,14 @@ from contacts import linkTuple
 # from mailer import sendMail
 
 if sys.version[0] == '2':
-    reload(sys)
+    # reload(sys)
     sys.setdefaultencoding("utf-8")
 
-if len(sys.argv) >1:
-    #parameter = bytes(sys.argv[1].encode())
+if len(sys.argv) > 1:
+    # parameter = bytes(sys.argv[1].encode())
     apiCode = str(sys.argv[1]) # chwilowo 1, potem 2 jak wejdzie klucz
 
-def windDiscDirection (windDirStr):
+def windDiscDirection(windDirStr):
     windDir = int(windDirStr)
     if windDir >= 338 or windDir <= 22:
         return 'północnym'
@@ -40,7 +40,7 @@ def windDiscDirection (windDirStr):
 
 
 def hello(name):
-    return "Dzień dobry, "+name+"!"
+    return "Dzień dobry, "+name+"!\n\n"
 
 
 def current (generic, tempFeelNow, pressNow, cloudNow, rainNow, snowNow, windSpeedNow, windDirNow, locative):
@@ -66,30 +66,32 @@ def current (generic, tempFeelNow, pressNow, cloudNow, rainNow, snowNow, windSpe
     else:
         windStrength = "Szaleje wichura ("+str(windSpeedNow)+" km\h)!"
 
-    desc = "Aktualnie w "+locative+" jest "+generic+", a temperatura odczuwalna to "+tempFeelNow+". "+windStrength+"\n\n"
+    desc = "Aktualnie w "+locative+" jest "+generic+", a temperatura odczuwalna to "+ \
+           str(tempFeelNow)+"℃. "+windStrength+"\n\n"
+
     return desc
 
 def forecasted (tempMax, tempMin, press, cloud, rain, snow, windSpeed, windDir):
     windDisc = windDiscDirection(windDir)
 
-    desc = "W ciągu dnia temperatura maksymalna wyniesie "+tempMax+", a minimalna "+tempMin+", zaś ciśnienie "+press+ \
-    ". Niebo będzie zachmurzone w "+cloud+", a spadnie z niego w ciągu doby "+str(rain)+ \
-    " mm deszczu oraz "+str(snow)+" mm śniegu. Wiatr w kierunku "+windDisc+" będzie wiał z prędkością "+str(windSpeed)+" km\h. \n"
+    desc = "W ciągu dnia temperatura maksymalna wyniesie "+str(tempMax)+"℃, a minimalna "+str(tempMin)+ \
+           "℃, zaś ciśnienie "+str(press)+" hPa. Niebo będzie zachmurzone w "+str(cloud)+ \
+           "%, a spadnie z niego w ciągu doby "+str(rain)+" mm deszczu oraz "+str(snow)+ \
+           " mm śniegu. Wiatr w kierunku "+str(windDisc)+" powieje z predkoscia "+str(windSpeed)+" km\h. \n"
 
     return desc
 
 
 def sunTime (sunrise, sunset):
-    sun = "Słońce wschodzi o godzinie "+sunrise+", a zachodzi o "+sunset+". \n\n"
-    return sun
+    return "Słońce wschodzi o godzinie "+sunrise+", a zachodzi o "+sunset+". \n\n"
 
 
 def bye():
-    return "Miłego dnia! :) \n\n--\nby MZ\ndane: OpenWeatherMap/GIOŚ"
+    return "\n\nMiłego dnia! :) \n\n--\nby MZ\ndane: OpenWeatherMap/GIOŚ"
  
 
 for city in addressBook:
-    currentJson,forecastJson = linkTuple(city, apiCode)
+    currentJson, forecastJson = linkTuple(city, apiCode)
     res = requests.get(currentJson)
     res.raise_for_status()
     now = res.json()
@@ -97,11 +99,11 @@ for city in addressBook:
     generic = now["weather"][0]["description"]
     loc = addressBook[city]["locative"]
 
-    tempFeelNow = str(float('%.1f'%((now["main"]["temp"])-273.15)))+"℃"
+    tempFeelNow = float('%.1f' % ((now["main"]["temp"])-273.15))
     rainNow = 0
     cloudNow = now["clouds"]["all"]
 
-    windSpeedNow = float('%.1f'%now["wind"]["speed"])
+    windSpeedNow = float('%.1f' % now["wind"]["speed"])
     windDirNow = float(now["wind"]["deg"])
 
     snowNow = 0
@@ -118,31 +120,36 @@ for city in addressBook:
     res2.raise_for_status()
     forecast = res2.json()
 
-    tempMax = max([forecast["list"][i]["main"]["temp_max"] for i in range(0,4)])
-    tempMin = min([forecast["list"][i]["main"]["temp_min"] for i in range(0,4)])
-    press = mean([forecast["list"][i]["main"]["pressure"] for i in range(0,4)])
-    cloud = mean([forecast["list"][i]["clouds"]["all"] for i in range(0,8)])
+    tempMax = float('%.1f' % (max([forecast["list"][i]["main"]["temp_max"] for i in range(0, 4)])-273.15))
+    tempMin = float('%.1f' % (min([forecast["list"][i]["main"]["temp_min"] for i in range(0, 4)])-273.15))
+    press = int(mean([forecast["list"][i]["main"]["pressure"] for i in range(0, 4)]))
+    cloud = int(mean([forecast["list"][i]["clouds"]["all"] for i in range(0, 8)]))
     # rain = sum([forecast["list"][i]["rain"]["3h"] for i in range(0,8)])
     rain = 0
     # snow = mean([forecast["list"][i]["snow"]["3h"] for i in range(0,8)])
     snow = 0
-    windSpeed = max([forecast["list"][i]["wind"]["speed"] for i in range(0,8)])
-    windDir = mean([forecast["list"][i]["wind"]["deg"] for i in range(0,4)])
+    windSpeed = max([forecast["list"][i]["wind"]["speed"] for i in range(0, 8)])
+    windDir = mean([forecast["list"][i]["wind"]["deg"] for i in range(0, 4)])
 
-    currentWeather=current(generic, tempFeelNow, pressNow, cloudNow, rainNow, snowNow, windSpeedNow, windDirNow, loc)
-    forecastWeather = forecasted(tempMax,tempMin,press,cloud,rain,snow,windSpeed,windDir)
-    sun=sunTime(sunrise, sunset)
-    pollution=pollutionReport(city)
+    currentWeather = current(generic, tempFeelNow, pressNow, cloudNow, rainNow, snowNow, windSpeedNow, windDirNow, loc)
+    forecastWeather = forecasted(tempMax, tempMin, press, cloud, rain, snow, windSpeed, windDir)
+    sun = sunTime(sunrise, sunset)
+    pollution = pollutionReport(city)
+
 
     for name in addressBook[city]["names"]:
-        desc = hello(name) + "\n\n" + \
+        helloMessage = hello(name)
+        byeMessage = bye()
+
+        desc = helloMessage + \
             currentWeather + \
-            forecast +\
-            sun +\
-            pollution +\
-            "\n\n" +bye()
+            forecastWeather + \
+            sun + \
+            pollution + \
+            byeMessage
+
         recipient = addressBook[city]["names"][name]
         pp(desc)
         pp(recipient)
         pp("")
-    #sendMail(desc.encode('utf-8'), recipient, parameter)
+    # sendMail(desc.encode('utf-8'), recipient, parameter)
