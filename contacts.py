@@ -9,7 +9,7 @@
 # codeBook = {"Gorlice":"Gorlice,pl","Kraków":"Krakow,pl","Oslo":"Oslo,no"}
 
 def linkTuple (city, apiCode):
-    return ["http://api.openweathermap.org/data/2.5/"+infoKind+"?q="+addressBook[city]["code"]+"+&APPID="+apiCode+"&lang=pl" for infoKind in ("weather","forecast")]
+    return ["http://api.openweathermap.org/data/2.5/"+infoKind+"?q="+addressBook[city]["code"]+"+&units=metric&APPID="+apiCode+"&lang=pl" for infoKind in ("weather","forecast")]
 
 # locativeBook = {"Gorlice":"Gorlicach","Kraków":"Krakowie"}
 

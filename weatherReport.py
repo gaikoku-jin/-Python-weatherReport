@@ -46,7 +46,7 @@ def precipitation (precipType):
             recordList.append(record[precipType]["3h"])
 
     if recordList:
-        return float("%.1f" % (sum(recordList)/len(recordList)))
+        return float("%.1f" % sum(recordList))
     else:
         return 0.0
 
@@ -110,7 +110,7 @@ for city in addressBook:
     generic = now["weather"][0]["description"]
     loc = addressBook[city]["locative"]
 
-    tempFeelNow = float('%.1f' % ((now["main"]["temp"])-273.15))
+    tempFeelNow = float('%.1f' % now["main"]["temp"])
     rainNow = 0
     cloudNow = now["clouds"]["all"]
 
@@ -131,8 +131,8 @@ for city in addressBook:
     res2.raise_for_status()
     forecast = res2.json()
 
-    tempMax = float('%.1f' % (max([forecast["list"][i]["main"]["temp_max"] for i in range(0, 4)])-273.15))
-    tempMin = float('%.1f' % (min([forecast["list"][i]["main"]["temp_min"] for i in range(0, 4)])-273.15))
+    tempMax = float('%.1f' % max([forecast["list"][i]["main"]["temp_max"] for i in range(0, 4)]))
+    tempMin = float('%.1f' % min([forecast["list"][i]["main"]["temp_min"] for i in range(0, 4)]))
     press = int(mean([forecast["list"][i]["main"]["pressure"] for i in range(0, 4)]))
     cloud = int(mean([forecast["list"][i]["clouds"]["all"] for i in range(0, 8)]))
     rain = precipitation("rain")
