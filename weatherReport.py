@@ -54,17 +54,8 @@ def hello(name):
     return "Dzień dobry, "+name+"!\n\n"
 
 
-def current (generic, tempFeelNow, pressNow, cloudNow, rainNow, snowNow, windSpeedNow, windDirNow, locative):
+def current (generic, tempFeelNow, windSpeedNow, windDirNow, locative):
     windDiscNow = windDiscDirection(windDirNow)
-
-    if (rainNow==0 and snowNow==0):
-        precip = "Brak opadów."
-    elif (rainNow>0 and snowNow==0):
-        precip = "Pada deszcz ("+str(rainNow)+" mm/24h)."
-    elif (rainNow==0 and snowNow>0):
-        precip = "Śnieży!"
-    else:
-        precip = "Możliwy deszcz ze śniegiem."
 
     if (windSpeedNow==0):
         windStrength = "Jest bezwietrznie."
@@ -111,15 +102,9 @@ for city in addressBook:
     loc = addressBook[city]["locative"]
 
     tempFeelNow = float('%.1f' % now["main"]["temp"])
-    rainNow = 0
-    cloudNow = now["clouds"]["all"]
 
     windSpeedNow = float('%.1f' % now["wind"]["speed"])
     windDirNow = float(now["wind"]["deg"])
-
-    snowNow = 0
-
-    pressNow = now["main"]["pressure"]
 
     sunriseTimeStamp = float(now["sys"]["sunrise"])
     sunrise = datetime.fromtimestamp(sunriseTimeStamp).strftime("%H:%M")
@@ -140,7 +125,7 @@ for city in addressBook:
     windSpeed = max([forecast["list"][i]["wind"]["speed"] for i in range(0, 8)])
     windDir = mean([forecast["list"][i]["wind"]["deg"] for i in range(0, 4)])
 
-    currentWeather = current(generic, tempFeelNow, pressNow, cloudNow, rainNow, snowNow, windSpeedNow, windDirNow, loc)
+    currentWeather = current(generic, tempFeelNow, windSpeedNow, windDirNow, loc)
     forecastWeather = forecasted(tempMax, tempMin, press, cloud, rain, snow, windSpeed, windDir)
     sun = sunTime(sunrise, sunset)
     pollution = pollutionReport(city)
