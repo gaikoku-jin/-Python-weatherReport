@@ -150,4 +150,4 @@ for city in addressBook:
         pp(desc)
         pp(recipient)
         pp("")
-    # sendMail(desc.encode('utf-8'), recipient, parameter)
+    # sendMail(desc.encode('utf-8'), recipient, parameter, umbrellaAlert)

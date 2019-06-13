@@ -11,7 +11,7 @@ from email.header import Header
 from email.utils import formataddr
 
 
-def sendMail(messageBody, recipient, parameter):
+def sendMail(messageBody, recipient, parameter, alert):
     author = formataddr((str(Header(u'Marcin', 'utf-8')), "zakrzews@agh.edu.pl"))
     toaddr = recipient
     msg = MIMEMultipart()
@@ -19,7 +19,7 @@ def sendMail(messageBody, recipient, parameter):
     date = datetime.datetime.now().strftime("%d-%m-%Y")
     msg['From'] = author
     msg['To'] = toaddr
-    msg['Subject'] = "Raport pogodowy "+date
+    msg['Subject'] = alert+"Raport pogodowy "+date
     body = messageBody
     msg.attach(MIMEText(body, 'plain', 'utf-8'))
     smtpObj = smtplib.SMTP_SSL('poczta.agh.edu.pl', 465)
