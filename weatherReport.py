@@ -38,10 +38,10 @@ def windDiscDirection(windDirStr):
     elif windDir >= 293 and windDir <= 337:
         return 'północno-zachodnim'
 
-def precipitation (precipType):
+def precipitation (precipType, cycles):
     recordList=[]
 
-    for record in (forecast["list"][i] for i in range(0, 8)):
+    for record in (forecast["list"][i] for i in range(0, cycles)):
         if precipType in record:
             recordList.append(record[precipType]["3h"])
 
@@ -120,8 +120,8 @@ for city in addressBook:
     tempMin = float('%.1f' % min([forecast["list"][i]["main"]["temp_min"] for i in range(0, 4)]))
     press = int(mean([forecast["list"][i]["main"]["pressure"] for i in range(0, 4)]))
     cloud = int(mean([forecast["list"][i]["clouds"]["all"] for i in range(0, 8)]))
-    rain = precipitation("rain")
-    snow = precipitation("snow")
+    rain = precipitation("rain",8)
+    snow = precipitation("snow",8)
     windSpeed = max([forecast["list"][i]["wind"]["speed"] for i in range(0, 8)])
     windDir = mean([forecast["list"][i]["wind"]["deg"] for i in range(0, 4)])
 
@@ -130,6 +130,9 @@ for city in addressBook:
     sun = sunTime(sunrise, sunset)
     pollution = pollutionReport(city)
 
+    umbrellaAlert=""
+    if (precipitation("rain",3) > 2):
+        umbrellaAlert="[WEŹ PARASOL] "
 
     for name in addressBook[city]["names"]:
         helloMessage = hello(name)
@@ -143,6 +146,7 @@ for city in addressBook:
             byeMessage
 
         recipient = addressBook[city]["names"][name]
+        pp(umbrellaAlert)
         pp(desc)
         pp(recipient)
         pp("")
